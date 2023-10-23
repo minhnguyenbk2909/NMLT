@@ -204,6 +204,23 @@ int checkDescription(char *raw_description)
     return -1;
 }
 
+int checkTime(char *raw_time)
+{
+    char time[MAX_LENGTH_TIME + 1];
+    strcpy(time, raw_time);
+    // Since date1 and date2 seperated by -
+    char date1[MAX_LENGTH_TIME + 1];
+    char date2[MAX_LENGTH_TIME + 1];
+    char *token = strtok(time, "-");
+    strcpy(date1, token);
+    token = strtok(NULL, " ");
+    strcpy(date2, token);
+    printf("Date1: %s\n", date1);
+    printf("Date2: %s\n", date2);
+
+    return -1;
+}
+
 // ------ End: Student Answer ------
 
 void runTodoApp()
@@ -235,6 +252,7 @@ void runTodoApp()
             printf("Raw time: %s\n", raw_time);
             printf("CheckTitle: %d\n", checkTitle(raw_title));
             printf("CheckDescription: %d\n", checkDescription(raw_description));
+            printf("CheckTime: %d\n", checkTime(raw_time));
         }
 
         break; // only one loop for simple test
