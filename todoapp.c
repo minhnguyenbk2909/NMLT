@@ -215,10 +215,63 @@ int checkTime(char *raw_time)
     strcpy(date1, token);
     token = strtok(NULL, " ");
     strcpy(date2, token);
-    printf("Date1: %s\n", date1);
-    printf("Date2: %s\n", date2);
-
+    // WIP
     return -1;
+}
+
+void getTitleFromEdit(char *command, char *out_title)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, command);
+    // Parse the first square block
+    char *token = strtok(cmd, "[");
+    // Keep parsing until met a closing bracket
+    token = strtok(NULL, "]");
+    strcpy(out_title, token);
+}
+
+void getDescriptionFromEdit(char *command, char *out_description)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, command);
+    // Parse the second square block
+    char *token = strtok(cmd, "[");
+    token = strtok(NULL, "]");
+    strcpy(out_description, token);
+}
+
+void getTimeFromEdit(char *command, char *out_time)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, command);
+    // Parse third square block
+    char *token = strtok(cmd, "[");
+    token = strtok(NULL, "]");
+    strcpy(out_time, token);
+}
+
+int getNumFromCommand(char *command)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, command);
+    // Check if there is a #
+    if (strchr(cmd, '#') == NULL)
+        return -1;
+    // Get the character after # token
+    char *token = strtok(cmd, "#");
+    token = strtok(NULL, " ");
+    int num = atoi(token);
+    printf("Num converted: %d\n", num);
+    // Workaround if there is no num after #
+    // This method fails if num itself is 0
+    // WIP
+    if (num == 0)
+        return -1;
+    return num > 0 ? num : 0;
 }
 
 // ------ End: Student Answer ------
@@ -232,6 +285,7 @@ void runTodoApp()
     {
         // Sample input:
         // Add [Course Intro to Programming] [Room 701-H6] [07:00|01/10/2023-12:00|01/10/2023]
+        // Edit #1 title:[Course Intro to Developing]
         fgets(command, MAX_LENGTH_COMMAND + 1, stdin);
         command[strlen(command) - 1] = '\0';
 
@@ -253,6 +307,21 @@ void runTodoApp()
             printf("CheckTitle: %d\n", checkTitle(raw_title));
             printf("CheckDescription: %d\n", checkDescription(raw_description));
             printf("CheckTime: %d\n", checkTime(raw_time));
+        }
+        else if (commandType == EDIT)
+        {
+            char raw_title[200];
+            char raw_description[200];
+            char raw_time[200];
+            int num;
+            getTitleFromEdit(command, raw_title);
+            getDescriptionFromEdit(command, raw_description);
+            getTimeFromEdit(command, raw_time);
+            num = getNumFromCommand(command);
+            printf("Raw title: %s\n", raw_title);
+            printf("Raw description: %s\n", raw_description);
+            printf("Raw time: %s\n", raw_time);
+            printf("Raw num: %d\n", num);
         }
 
         break; // only one loop for simple test
