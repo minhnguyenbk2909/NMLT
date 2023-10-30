@@ -208,6 +208,9 @@ int checkTime(char *raw_time)
 {
     char time[MAX_LENGTH_TIME + 1];
     strcpy(time, raw_time);
+    // WIP !!! ---------------
+    return -1;
+    // -----------------------
     // Since date1 and date2 seperated by -
     char date1[MAX_LENGTH_TIME + 1];
     char date2[MAX_LENGTH_TIME + 1];
@@ -215,7 +218,6 @@ int checkTime(char *raw_time)
     strcpy(date1, token);
     token = strtok(NULL, " ");
     strcpy(date2, token);
-    // WIP
     return -1;
 }
 
@@ -274,10 +276,194 @@ int getNumFromCommand(char *command)
     return num > 0 ? num : 0;
 }
 
+int getFieldFromEdit(char *edit_cmd)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, edit_cmd);
+    // Token from second whitespace to before colon
+    char *token = strtok(cmd, " ");
+    token = strtok(NULL, " ");
+    token = strtok(NULL, ":");
+    // Compare token with title, description, time or status string
+    if (strcmp(token, "title") == 0)
+        return 1;
+    if (strcmp(token, "description") == 0)
+        return 2;
+    if (strcmp(token, "time") == 0)
+        return 3;
+    if (strcmp(token, "status") == 0)
+        return 4;
+    return 0;
+}
+
+enum Status getStatusFromEdit(char *edit_cmd)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, edit_cmd);
+    // Token from after "[" to the end of string
+    char *token = strtok(cmd, "[");
+    token = strtok(NULL, "]");
+    // Compare token to 'I', 'D' or 'A' case-insensitive
+    if (stricmp(token, "I") == 0)
+        return IN_PROGRESS;
+    if (stricmp(token, "D") == 0)
+        return DONE;
+    return ARCHIVED;
+}
+
+void printAllTasks(struct Task *array_tasks, int no_tasks)
+{
+    for (int i = 0; i < no_tasks; i++)
+    {
+        printTask(&array_tasks[i]);
+    }
+}
+
+void printTaskByNum(struct Task *array_tasks, int no_tasks, int num)
+{
+    for (int i = 0; i < no_tasks; i++)
+    {
+        if (array_tasks[i].num == num)
+        {
+            printTask(&array_tasks[i]);
+        }
+    }
+}
+
+void printHeadTasks(struct Task *array_tasks, int no_tasks, int quan)
+{
+    // Print first <quan> tasks
+    // First check if <quan> is smaller than no_tasks
+    if (quan < no_tasks)
+        for (int i = 0; i < quan; i++)
+            printTask(&array_tasks[i]);
+    // Else print all tasks
+    else
+        printAllTasks(array_tasks, no_tasks);
+}
+
+void printTailTasks(struct Task *array_tasks, int no_tasks, int quan)
+{
+    // Print last <quan> tasks but keeps the order
+    if (quan < no_tasks)
+        for (int i = no_tasks - quan; i < no_tasks; i++)
+            printTask(&array_tasks[i]);
+    else
+        printAllTasks(array_tasks, no_tasks);
+}
+
+void printFilteredTasksByTitle(struct Task *array_tasks, int no_tasks, char *filter_title)
+{
+    // filter_title can be a substring of title
+    for (int i = 0; i < no_tasks; i++)
+    {
+        if (strstr(array_tasks[i].title, filter_title) != NULL)
+            printTask(&array_tasks[i]);
+    }
+}
+
+void printFilteredTasksByDescription(struct Task *array_tasks, int no_tasks, char *filter_description)
+{
+    for (int i = 0; i < no_tasks; i++)
+    {
+        if (strstr(array_tasks[i].description, filter_description) != NULL)
+            printTask(&array_tasks[i]);
+    }
+}
+
+void printFilteredTasksByStatus(struct Task *array_tasks, int no_tasks, enum Status filter_status)
+{
+    for (int i = 0; i < no_tasks; i++)
+    {
+        if (array_tasks[i].status == filter_status)
+            printTask(&array_tasks[i]);
+    }
+}
+
+bool addTask(struct Task *array_tasks, int no_tasks, char *new_title, char *new_description, char *new_time)
+{
+    // Check if there is enough space
+    if (no_tasks >= MAX_NO_TASKS)
+        return false;
+    // Append new task
+    array_tasks[no_tasks].num = no_tasks + 1;
+    // Must perform each check before copy string value
+    if (checkTitle(new_title) == -1)
+        strcpy(array_tasks[no_tasks].title, new_title);
+    else
+        return false;
+    if (checkDescription(new_description) == -1)
+        strcpy(array_tasks[no_tasks].description, new_description);
+    else
+        return false;
+    if (checkTime(new_time) == -1)
+        strcpy(array_tasks[no_tasks].time, new_time);
+    else
+        return false;
+    array_tasks[no_tasks].status = IN_PROGRESS;
+    // no_tasks is not passed by reference, no need to increase
+    // no_tasks++;
+    return true;
+}
+
+bool deleteTask(struct Task *array_tasks, int no_tasks, int num)
+{
+    // Check if there is enough space
+    if (no_tasks <= 0)
+        return false;
+    // Search for num
+    for (int i = 0; i < no_tasks; i++)
+    {
+        if (array_tasks[i].num == num)
+        {
+            // Shift all tasks back 1 unit
+            for (int j = i; j < no_tasks - 1; j++)
+            {
+                array_tasks[j] = array_tasks[j + 1];
+                // Also shift num
+                array_tasks[j].num = j + 1;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
 // ------ End: Student Answer ------
 
 void runTodoApp()
 {
+    struct Task array_tasks[MAX_NO_TASKS];
+    // Append some simple cases for array tasks
+    array_tasks[0].num = 1;
+    strcpy(array_tasks[0].title, "Course Intro to Programming");
+    strcpy(array_tasks[0].description, "Room 701-H6");
+    strcpy(array_tasks[0].time, "07:00|01/10/2023-12:00|01/10/2023");
+    array_tasks[0].status = IN_PROGRESS;
+    array_tasks[1].num = 2;
+    strcpy(array_tasks[1].title, "Data Structure and Algorithm");
+    strcpy(array_tasks[1].description, "Room 702-H6");
+    strcpy(array_tasks[1].time, "08:00|02/10/2023-12:00|02/10/2023");
+    array_tasks[1].status = DONE;
+    array_tasks[2].num = 3;
+    strcpy(array_tasks[2].title, "Principle of Programming Language");
+    strcpy(array_tasks[2].description, "Room 703-H6");
+    strcpy(array_tasks[2].time, "09:00|03/10/2023-12:00|03/10/2023");
+    array_tasks[2].status = ARCHIVED;
+    array_tasks[3].num = 4;
+    strcpy(array_tasks[3].title, "Fun Task :)");
+    strcpy(array_tasks[3].description, "Fun Room :)");
+    strcpy(array_tasks[3].time, "Fun time :)");
+    array_tasks[3].status = IN_PROGRESS;
+    array_tasks[4].num = 5;
+    strcpy(array_tasks[4].title, "Course Intro to Developing");
+    strcpy(array_tasks[4].description, "Room 704-H6");
+    strcpy(array_tasks[4].time, "10:00|04/10/2023-12:00|04/10/2023");
+    array_tasks[4].status = DONE;
+    int no_tasks = 5;
+
     // Example of command Add
     char command[MAX_LENGTH_COMMAND + 1];
 
@@ -301,12 +487,12 @@ void runTodoApp()
             getTitleFromAdd(command, raw_title);
             getDescriptionFromAdd(command, raw_description);
             getTimeFromAdd(command, raw_time);
-            printf("Raw title: %s\n", raw_title);
-            printf("Raw description: %s\n", raw_description);
-            printf("Raw time: %s\n", raw_time);
-            printf("CheckTitle: %d\n", checkTitle(raw_title));
-            printf("CheckDescription: %d\n", checkDescription(raw_description));
-            printf("CheckTime: %d\n", checkTime(raw_time));
+            bool success = addTask(array_tasks, no_tasks, raw_title, raw_description, raw_time);
+            if (success)
+            {
+                no_tasks++;
+                printf("Task added!\n");
+            }
         }
         else if (commandType == EDIT)
         {
@@ -314,18 +500,55 @@ void runTodoApp()
             char raw_description[200];
             char raw_time[200];
             int num;
+            int field;
+            enum Status status;
             getTitleFromEdit(command, raw_title);
             getDescriptionFromEdit(command, raw_description);
             getTimeFromEdit(command, raw_time);
             num = getNumFromCommand(command);
+            field = getFieldFromEdit(command);
+            status = getStatusFromEdit(command);
             printf("Raw title: %s\n", raw_title);
             printf("Raw description: %s\n", raw_description);
             printf("Raw time: %s\n", raw_time);
             printf("Raw num: %d\n", num);
+            printf("Raw field: %d\n", field);
+            printf("Raw status: %d\n", status);
         }
-
-        break; // only one loop for simple test
-               // actual app will break when encounter QUIT command
+        else if (commandType == SHOW)
+        {
+            printf("Printing all tasks:\n");
+            printAllTasks(array_tasks, no_tasks);
+            printf("Printing task by num:\n");
+            int num = 2;
+            printTaskByNum(array_tasks, no_tasks, num);
+            int quan = 2;
+            printf("Printing head of %d tasks:\n", quan);
+            printHeadTasks(array_tasks, no_tasks, quan);
+            printf("Printing tail of %d tasks:\n", quan);
+            printTailTasks(array_tasks, no_tasks, quan);
+            char filter_title[] = "Intro";
+            printf("Printing filtered tasks by title of %s:\n", filter_title);
+            printFilteredTasksByTitle(array_tasks, no_tasks, filter_title);
+            char filter_description[] = "H6";
+            printf("Printing filtered tasks by description of %s:\n", filter_description);
+            printFilteredTasksByDescription(array_tasks, no_tasks, filter_description);
+            enum Status stt = DONE;
+            printf("Printing filtered tasks by status of %d:\n", stt);
+            printFilteredTasksByStatus(array_tasks, no_tasks, stt);
+        }
+        else if (commandType == DELETE)
+        {
+            int num_to_delete = 3;
+            bool success = deleteTask(array_tasks, no_tasks, num_to_delete);
+            if (success)
+            {
+                no_tasks--;
+                printf("Task deleted!\n");
+            }
+        }
+        else if (commandType == QUIT)
+            break;
     }
 }
 
