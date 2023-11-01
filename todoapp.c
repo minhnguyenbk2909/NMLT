@@ -204,13 +204,140 @@ int checkDescription(char *raw_description)
     return -1;
 }
 
+int getHourOfDate(char *date)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, date);
+    // Get first 2 characters before ':'
+    char *token = strtok(cmd, ":");
+    int hour = atoi(token);
+    // A valid hour must be between 0 and 23
+    if (hour < 0 || hour > 23)
+        return -1;
+    return hour;
+}
+
+int getMinuteOfDate(char *date)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, date);
+    // Get 2 characters after ':' before '|'
+    char *token = strtok(cmd, ":");
+    token = strtok(NULL, "|");
+    int minute = atoi(token);
+    // A valid minute must be between 0 and 59
+    if (minute < 0 || minute > 59)
+        return -1;
+    return minute;
+}
+
+int getYearOfDate(char *date)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, date);
+    // Get last 4 characters after the second '/'
+    char *token = strtok(cmd, "/");
+    token = strtok(NULL, "/");
+    token = strtok(NULL, " ");
+    int year = atoi(token);
+    // A valid year must be positive integer
+    if (year < 0)
+        return -1;
+    return year;
+}
+
+// Returns additional number represents how many days in month
+int getMonthOfDate(char *date, int *days)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, date);
+    // Get 2 characters after first '/' before second '/'
+    char *token = strtok(cmd, "/");
+    token = strtok(NULL, "/");
+    int month = atoi(token);
+    // A valid month must be between 1 and 12
+    if (month < 1 || month > 12)
+    {
+        *days = -1;
+        return -1;
+    }
+    *days = 31;
+    if (month == 4 || month == 6 || month == 9 || month == 11)
+        *days = 30;
+    if (month == 2)
+        // Check for leap year
+        if (getYearOfDate(date) % 4 == 0)
+            *days = 29;
+        else
+            *days = 28;
+    return month;
+}
+
+int getDayOfDate(char *date, int max_day)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, date);
+    // Get 2 characters after '|' before '/'
+    char *token = strtok(cmd, "|");
+    token = strtok(NULL, "/");
+    int day = atoi(token);
+    // A valid day must be between 1 and max_day
+    if (day < 1 || day > max_day)
+        return -1;
+    return day;
+}
+
+// Check if date1 is sooner than date2
+bool isSooner(char *date1, char *date2)
+{
+    // First check years
+    int year1 = getYearOfDate(date1);
+    int year2 = getYearOfDate(date2);
+    if (year2 > year1)
+        return true;
+    if (year2 < year1)
+        return false;
+    // Then check months
+    int max_days = 0; // Just to avoid passing NULL to function
+    int month1 = getMonthOfDate(date1, &max_days);
+    int month2 = getMonthOfDate(date2, &max_days);
+    if (month2 > month1)
+        return true;
+    if (month2 < month1)
+        return false;
+    // Then check days
+    int day1 = getDayOfDate(date1, 99);
+    int day2 = getDayOfDate(date2, 99);
+    if (day2 > day1)
+        return true;
+    if (day2 < day1)
+        return false;
+    // Check hours
+    int hour1 = getHourOfDate(date1);
+    int hour2 = getHourOfDate(date2);
+    if (hour2 > hour1)
+        return true;
+    if (hour2 < hour1)
+        return false;
+    // Check minutes
+    int minute1 = getMinuteOfDate(date1);
+    int minute2 = getMinuteOfDate(date2);
+    if (minute2 > minute1)
+        return true;
+    if (minute2 < minute1)
+        return false;
+    return false;
+}
+
 int checkTime(char *raw_time)
 {
     char time[MAX_LENGTH_TIME + 1];
     strcpy(time, raw_time);
-    // WIP !!! ---------------
-    return -1;
-    // -----------------------
     // Since date1 and date2 seperated by -
     char date1[MAX_LENGTH_TIME + 1];
     char date2[MAX_LENGTH_TIME + 1];
@@ -218,6 +345,30 @@ int checkTime(char *raw_time)
     strcpy(date1, token);
     token = strtok(NULL, " ");
     strcpy(date2, token);
+    // Date format: <hh>:<mm>|<dd>/<mo>/<yyyy>
+    int max_day, month;
+    // Check if both date are valid
+    month = getMonthOfDate(date1, &max_day);
+    bool d1valid = getHourOfDate(date1) != -1 && getMinuteOfDate(date1) != -1 && getDayOfDate(date1, max_day) != -1 && month != -1 && getYearOfDate(date1) != -1;
+    month = getMonthOfDate(date2, &max_day);
+    bool d2valid = getHourOfDate(date2) != -1 && getMinuteOfDate(date2) != -1 && getDayOfDate(date2, max_day) != -1 && month != -1 && getYearOfDate(date2) != -1;
+    if (!d1valid)
+    {
+        // Return value for d1
+        // WIP
+    }
+    if (!d2valid)
+    {
+        // Return value for d2
+        // WIP
+    }
+    // date2 must not be sooner than date1
+    if (!isSooner(date1, date2))
+    {
+        // printf("Error: Date2 must not be sooner than date1\n");
+        return 0;
+    }
+    // Final case, if everything else passes
     return -1;
 }
 
