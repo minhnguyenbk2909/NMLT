@@ -78,23 +78,23 @@ enum CommandType getCommandType(char *command)
     {
         return INVALID;
     }
-    if (stricmp(token, command_name[0]) == 0)
+    if (strcasecmp(token, command_name[0]) == 0)
     {
         return ADD;
     }
-    else if (stricmp(token, command_name[1]) == 0)
+    else if (strcasecmp(token, command_name[1]) == 0)
     {
         return EDIT;
     }
-    else if (stricmp(token, command_name[2]) == 0)
+    else if (strcasecmp(token, command_name[2]) == 0)
     {
         return SHOW;
     }
-    else if (stricmp(token, command_name[3]) == 0)
+    else if (strcasecmp(token, command_name[3]) == 0)
     {
         return DELETE;
     }
-    else if (stricmp(token, command_name[4]) == 0)
+    else if (strcasecmp(token, command_name[4]) == 0)
     {
         return QUIT;
     }
@@ -213,8 +213,8 @@ int getHourOfDate(char *date)
     char *token = strtok(cmd, ":");
     int hour = atoi(token);
     // A valid hour must be between 0 and 23
-    if (hour < 0 || hour > 23)
-        return -1;
+    // if (hour < 0 || hour > 23)
+    //    return -1;
     return hour;
 }
 
@@ -228,8 +228,8 @@ int getMinuteOfDate(char *date)
     token = strtok(NULL, "|");
     int minute = atoi(token);
     // A valid minute must be between 0 and 59
-    if (minute < 0 || minute > 59)
-        return -1;
+    // if (minute < 0 || minute > 59)
+    //    return -1;
     return minute;
 }
 
@@ -244,8 +244,8 @@ int getYearOfDate(char *date)
     token = strtok(NULL, " ");
     int year = atoi(token);
     // A valid year must be positive integer
-    if (year < 0)
-        return -1;
+    // if (year < 0)
+    //    return -1;
     return year;
 }
 
@@ -263,17 +263,20 @@ int getMonthOfDate(char *date, int *days)
     if (month < 1 || month > 12)
     {
         *days = -1;
-        return -1;
+        // return -1;
     }
-    *days = 31;
-    if (month == 4 || month == 6 || month == 9 || month == 11)
-        *days = 30;
-    if (month == 2)
-        // Check for leap year
-        if (getYearOfDate(date) % 4 == 0)
-            *days = 29;
-        else
-            *days = 28;
+    else
+    {
+        *days = 31;
+        if (month == 4 || month == 6 || month == 9 || month == 11)
+            *days = 30;
+        if (month == 2)
+            // Check for leap year
+            if (getYearOfDate(date) % 4 == 0)
+                *days = 29;
+            else
+                *days = 28;
+    }
     return month;
 }
 
@@ -287,8 +290,8 @@ int getDayOfDate(char *date, int max_day)
     token = strtok(NULL, "/");
     int day = atoi(token);
     // A valid day must be between 1 and max_day
-    if (day < 1 || day > max_day)
-        return -1;
+    // if (day < 1 || day > max_day)
+    //    return -1;
     return day;
 }
 
@@ -346,22 +349,41 @@ int checkTime(char *raw_time)
     token = strtok(NULL, " ");
     strcpy(date2, token);
     // Date format: <hh>:<mm>|<dd>/<mo>/<yyyy>
-    int max_day, month;
+    int max_day1, max_day2;
+    // Get max_day for both dates
+    getMonthOfDate(date1, &max_day1);
+    getMonthOfDate(date2, &max_day2);
     // Check if both date are valid
-    month = getMonthOfDate(date1, &max_day);
-    bool d1valid = getHourOfDate(date1) != -1 && getMinuteOfDate(date1) != -1 && getDayOfDate(date1, max_day) != -1 && month != -1 && getYearOfDate(date1) != -1;
-    month = getMonthOfDate(date2, &max_day);
-    bool d2valid = getHourOfDate(date2) != -1 && getMinuteOfDate(date2) != -1 && getDayOfDate(date2, max_day) != -1 && month != -1 && getYearOfDate(date2) != -1;
-    if (!d1valid)
-    {
-        // Return value for d1
-        // WIP
-    }
-    if (!d2valid)
-    {
-        // Return value for d2
-        // WIP
-    }
+    int h1 = getHourOfDate(date1);
+    if (h1 < 0 || h1 > 23)
+        return 1100 + h1;
+    int h2 = getHourOfDate(date2);
+    if (h2 < 0 || h2 > 23)
+        return 1200 + h2;
+    int m1 = getMinuteOfDate(date1);
+    if (m1 < 0 || m1 > 59)
+        return 2100 + m1;
+    int m2 = getMinuteOfDate(date2);
+    if (m2 < 0 || m2 > 59)
+        return 2200 + m2;
+    int d1 = getDayOfDate(date1, max_day1);
+    if (d1 < 1 || d1 > max_day1)
+        return 3100 + d1;
+    int d2 = getDayOfDate(date2, max_day2);
+    if (d2 < 1 || d2 > max_day2)
+        return 3200 + d2;
+    int mo1 = getMonthOfDate(date1, &max_day1);
+    if (mo1 < 1 || mo1 > 12)
+        return 4100 + mo1;
+    int mo2 = getMonthOfDate(date2, &max_day2);
+    if (mo2 < 1 || mo2 > 12)
+        return 4200 + mo2;
+    int y1 = getYearOfDate(date1);
+    if (y1 < 0)
+        return 510000 + y1;
+    int y2 = getYearOfDate(date2);
+    if (y2 < 0)
+        return 520000 + y2;
     // date2 must not be sooner than date1
     if (!isSooner(date1, date2))
     {
@@ -457,9 +479,9 @@ enum Status getStatusFromEdit(char *edit_cmd)
     char *token = strtok(cmd, "[");
     token = strtok(NULL, "]");
     // Compare token to 'I', 'D' or 'A' case-insensitive
-    if (stricmp(token, "I") == 0)
+    if (strcasecmp(token, "I") == 0)
         return IN_PROGRESS;
-    if (stricmp(token, "D") == 0)
+    if (strcasecmp(token, "D") == 0)
         return DONE;
     return ARCHIVED;
 }
@@ -582,6 +604,66 @@ bool deleteTask(struct Task *array_tasks, int no_tasks, int num)
     return false;
 }
 
+int flooor(float x)
+{
+    // If x is already an integer, return x
+    return x == (int)x ? x :
+                       // If x is positive, cast x to an int and return it
+               x > 0 ? (int)x
+                     :
+                     // If x is negative, cast x to an int and subtract 1 from it
+               (int)x - 1;
+}
+
+int p(int ws, int wc)
+{
+    return flooor((wc - ws) / 2);
+}
+
+// 0 = SUN, 1 = MON ... 6 = SAT
+int getWeekday(int d, int m, int y)
+{
+    if (m < 3)
+    {
+        y = y - 1;
+        m = m + 12;
+    }
+    return (d + m * 13 / 5 + y + y / 4 - y / 100 + y / 400 + 5) % 7;
+}
+
+char *weekdays[] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+
+int printWeekTime(struct Task *array_tasks, int no_tasks, char *date)
+{
+    // Make backup
+    char cmd[MAX_LENGTH_COMMAND + 1];
+    strcpy(cmd, date);
+    int y = getYearOfDate(cmd);
+    int max_day;
+    int m = getMonthOfDate(cmd, &max_day);
+    int d = getDayOfDate(cmd, max_day);
+    int weekday = getWeekday(d, m, y);
+    // Get monday's day
+    int mon = d - weekday + 1;
+    // Print the year
+    for (int i = 0; i < p(4, WEEK_CELL_FIRST_COL_WIDTH); i++)
+        printf(" ");
+    printf("%d", y);
+    for (int j = 0; j < 7; j++)
+    {
+        // Print the horizontal header contains MON to SUN
+        for (int i = 0; i < p(3, WEEK_CELL_OTHER_COL_WIDTH); i++)
+            printf(" ");
+        printf("%s", weekdays[j]);
+        // Print header subtitle day of each weekdays
+        printf("\t%d/%d", mon + j + 1, m);
+    }
+    printf("\n");
+    // Print time and task associated with each day
+    printf("%d:00\t", 0);
+    printf("#%d|%d:%d-%d:%d", 1, 7, 0, 12, 0);
+}
+
 // ------ End: Student Answer ------
 
 void runTodoApp()
@@ -644,6 +726,8 @@ void runTodoApp()
                 no_tasks++;
                 printf("Task added!\n");
             }
+            else
+                printf("Task not added!\n");
         }
         else if (commandType == EDIT)
         {
@@ -668,6 +752,7 @@ void runTodoApp()
         }
         else if (commandType == SHOW)
         {
+            /*
             printf("Printing all tasks:\n");
             printAllTasks(array_tasks, no_tasks);
             printf("Printing task by num:\n");
@@ -687,6 +772,8 @@ void runTodoApp()
             enum Status stt = DONE;
             printf("Printing filtered tasks by status of %d:\n", stt);
             printFilteredTasksByStatus(array_tasks, no_tasks, stt);
+            */
+            printWeekTime(array_tasks, no_tasks, "07:00|10/10/2023");
         }
         else if (commandType == DELETE)
         {
