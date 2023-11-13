@@ -615,6 +615,8 @@ int flooor(float x)
                (int)x - 1;
 }
 
+// ws: string length
+// wc: cell width
 int p(int ws, int wc)
 {
     return flooor((wc - ws) / 2);
@@ -623,12 +625,9 @@ int p(int ws, int wc)
 // 0 = SUN, 1 = MON ... 6 = SAT
 int getWeekday(int d, int m, int y)
 {
-    if (m < 3)
-    {
-        y = y - 1;
-        m = m + 12;
-    }
-    return (d + m * 13 / 5 + y + y / 4 - y / 100 + y / 400 + 5) % 7;
+    static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+    y -= m < 3;
+    return (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
 }
 
 char *weekdays[] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
@@ -645,23 +644,60 @@ int printWeekTime(struct Task *array_tasks, int no_tasks, char *date)
     int weekday = getWeekday(d, m, y);
     // Get monday's day
     int mon = d - weekday + 1;
+    for (int k = 0; k < 2 * p(0, WEEK_CELL_FIRST_COL_WIDTH); k++)
+        printf(" ");
+    // 1st horizontal header
+    for (int j = 0; j < 7; j++)
+    {
+        // Print the horizontal header contains MON to SUN
+        for (int k = 0; k < p(3, WEEK_CELL_OTHER_COL_WIDTH); k++)
+            printf(" ");
+        printf("%s", weekdays[j]);
+        for (int k = 0; k < p(3, WEEK_CELL_OTHER_COL_WIDTH); k++)
+            printf(" ");
+    }
+    printf("\n");
+    // 2nd horizontal header
+    for (int k = 0; k < 2 * p(0, WEEK_CELL_FIRST_COL_WIDTH); k++)
+        printf(" ");
+    for (int j = 0; j < 7; j++)
+    {
+        for (int k = 0; k < p(5, WEEK_CELL_OTHER_COL_WIDTH); k++)
+            printf(" ");
+        // Print header subtitle day of each weekdays
+        printf("%02d/%02d", mon + j, m);
+        for (int k = 0; k < p(5, WEEK_CELL_OTHER_COL_WIDTH); k++)
+            printf(" ");
+    }
+    printf("\n");
     // Print the year
     for (int i = 0; i < p(4, WEEK_CELL_FIRST_COL_WIDTH); i++)
         printf(" ");
     printf("%d", y);
-    for (int j = 0; j < 7; j++)
-    {
-        // Print the horizontal header contains MON to SUN
-        for (int i = 0; i < p(3, WEEK_CELL_OTHER_COL_WIDTH); i++)
-            printf(" ");
-        printf("%s", weekdays[j]);
-        // Print header subtitle day of each weekdays
-        printf("\t%d/%d", mon + j + 1, m);
-    }
     printf("\n");
-    // Print time and task associated with each day
-    printf("%d:00\t", 0);
-    printf("#%d|%d:%d-%d:%d", 1, 7, 0, 12, 0);
+    // Print time
+    for (int i = 0; i < 24; i++)
+    {
+        // Print vertical header (time)
+        for (int j = 0; j < p(5, WEEK_CELL_FIRST_COL_WIDTH); j++)
+            printf(" ");
+        printf("%02d:00", i);
+        for (int j = 0; j < p(5, WEEK_CELL_FIRST_COL_WIDTH); j++)
+            printf(" ");
+        // Print date of task
+        for (int j = 0; j < p(14, WEEK_CELL_OTHER_COL_WIDTH); j++)
+            printf(" ");
+        struct Task tasks[7]; // Tasks for all days at this hour
+        int count = 0;
+        // Go through each day, append task has the same date1 and same day
+        // WIP
+        // printf("#%d|%02d:%02d-%02d:%02d", 1, 7, 0, 12, 0);
+        printf("\n");
+        // Print tile
+        printf("         ");
+        printf("Introduction");
+        printf("\n");
+    }
 }
 
 // ------ End: Student Answer ------
