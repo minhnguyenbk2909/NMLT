@@ -629,8 +629,6 @@ int getWeekday(int d, int m, int y)
     return (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
 }
 
-char *weekdays[] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
-
 int printWeekTime(struct Task *array_tasks, int no_tasks, char *date)
 {
     // Make backup
@@ -640,52 +638,91 @@ int printWeekTime(struct Task *array_tasks, int no_tasks, char *date)
     int max_day;
     int m = getMonthOfDate(cmd, &max_day);
     int d = getDayOfDate(cmd, max_day);
-    int weekday = getWeekday(d, m, y);
-    // Get monday's day
-    int mon = d - weekday + 1;
-    for (int k = 0; k < 2 * p(0, WEEK_CELL_FIRST_COL_WIDTH); k++)
+    // int mon = d - weekday + 1;
+    char *weekdays[] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+    // <date> format: day/dd/mm/yyyy
+    // get <day> and compare with weekdays
+    int day = 0;
+    char *token = strtok(cmd, "/");
+    for (int i = 0; i < 7; i++)
+    {
+        if (strcasecmp(token, weekdays[i]) == 0)
+        {
+            day = i;
+            break;
+        }
+    }
+    // Get monday's date
+    int mon = d - day + 1;
+    // Print horizontal line
+    const int DASH = 159;
+    for (int i = 0; i < DASH; i++)
+    {
+        printf("-");
+    }
+    printf("\n");
+    // Print year as first column
+    printf("|");
+    for (int k = 0; k < p(4, WEEK_CELL_FIRST_COL_WIDTH); k++)
         printf(" ");
+    printf("%d", y);
+    for (int k = 0; k < p(4, WEEK_CELL_FIRST_COL_WIDTH); k++)
+        printf(" ");
+    printf("|");
     // 1st horizontal header
     for (int j = 0; j < 7; j++)
     {
+        printf("|");
         // Print the horizontal header contains MON to SUN
         for (int k = 0; k < p(3, WEEK_CELL_OTHER_COL_WIDTH); k++)
             printf(" ");
         printf("%s", weekdays[j]);
         for (int k = 0; k < p(3, WEEK_CELL_OTHER_COL_WIDTH); k++)
             printf(" ");
+        printf("|");
     }
     printf("\n");
     // 2nd horizontal header
+    printf("|");
     for (int k = 0; k < 2 * p(0, WEEK_CELL_FIRST_COL_WIDTH); k++)
         printf(" ");
+    printf("|");
     for (int j = 0; j < 7; j++)
     {
+        printf("|");
         for (int k = 0; k < p(5, WEEK_CELL_OTHER_COL_WIDTH); k++)
             printf(" ");
         // Print header subtitle day of each weekdays
         printf("%02d/%02d", mon + j, m);
         for (int k = 0; k < p(5, WEEK_CELL_OTHER_COL_WIDTH); k++)
             printf(" ");
+        printf("|");
     }
+    // Second dash line
     printf("\n");
-    // Print the year
-    for (int i = 0; i < p(4, WEEK_CELL_FIRST_COL_WIDTH); i++)
-        printf(" ");
-    printf("%d", y);
+    for (int i = 0; i < DASH; i++)
+        printf("-");
     printf("\n");
     // Print time
     for (int i = 0; i < 24; i++)
     {
+        printf("-");
         // Print vertical header (time)
         for (int j = 0; j < p(5, WEEK_CELL_FIRST_COL_WIDTH); j++)
-            printf(" ");
+            printf("-");
         printf("%02d:00", i);
         for (int j = 0; j < p(5, WEEK_CELL_FIRST_COL_WIDTH); j++)
+            printf("-");
+        printf("-");
+        // Print remaining dashes
+        for (int j = 0; j < DASH - 11; j++)
+            printf("-");
+        printf("\n");
+        // First column empty
+        printf("|");
+        for (int j = 0; j < 2 * p(0, WEEK_CELL_FIRST_COL_WIDTH); j++)
             printf(" ");
-        // Print date of task
-        for (int j = 0; j < p(14, WEEK_CELL_OTHER_COL_WIDTH); j++)
-            printf(" ");
+        printf("|");
         struct Task tasks[7]; // Tasks for all days at this hour
         int count = 0;
         // Go through each day, append task has the same date1 and same day
@@ -693,9 +730,6 @@ int printWeekTime(struct Task *array_tasks, int no_tasks, char *date)
         // printf("#%d|%02d:%02d-%02d:%02d", 1, 7, 0, 12, 0);
         printf("\n");
         // Print tile
-        printf("         ");
-        printf("Introduction");
-        printf("\n");
     }
 }
 
