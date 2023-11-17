@@ -142,7 +142,7 @@ void getTimeFromAdd(char *command, char *out_time)
 
 int checkTitle(char *raw_title)
 {
-    char title[200];
+    char title[MAX_LENGTH_COMMAND + 1];
     strcpy(title, raw_title);
     // If exceed max title length
     if (strlen(title) > 100)
@@ -175,7 +175,7 @@ int checkTitle(char *raw_title)
 
 int checkDescription(char *raw_description)
 {
-    char description[200];
+    char description[MAX_LENGTH_COMMAND + 1];
     strcpy(description, raw_description);
     // If exceed max description length
     if (strlen(description) > 200)
@@ -458,13 +458,13 @@ int getFieldFromEdit(char *edit_cmd)
     token = strtok(NULL, " ");
     token = strtok(NULL, ":");
     // Compare token with title, description, time or status string
-    if (strcmp(token, "title") == 0)
+    if (strcasecmp(token, "title") == 0)
         return 1;
-    if (strcmp(token, "description") == 0)
+    if (strcasecmp(token, "description") == 0)
         return 2;
-    if (strcmp(token, "time") == 0)
+    if (strcasecmp(token, "time") == 0)
         return 3;
-    if (strcmp(token, "status") == 0)
+    if (strcasecmp(token, "status") == 0)
         return 4;
     return 0;
 }
