@@ -440,7 +440,6 @@ int getNumFromCommand(char *command)
     char *token = strtok(cmd, "#");
     token = strtok(NULL, " ");
     int num = atoi(token);
-    printf("Num converted: %d\n", num);
     // Workaround if there is no num after #
     // This method fails if num itself is 0
     // WIP
@@ -756,6 +755,9 @@ void runTodoApp()
             getTitleFromAdd(command, raw_title);
             getDescriptionFromAdd(command, raw_description);
             getTimeFromAdd(command, raw_time);
+            printf("Raw title: %s\n", raw_title);
+            printf("Raw description: %s\n", raw_description);
+            printf("Raw time: %s\n", raw_time);
             bool success = addTask(array_tasks, no_tasks, raw_title, raw_description, raw_time);
             if (success)
             {
